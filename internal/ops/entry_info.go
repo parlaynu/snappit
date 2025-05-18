@@ -10,33 +10,39 @@ type EntryStatus int
 
 const (
 	StatusOk EntryStatus = iota
+	StatusError
 	StatusNew
 	StatusModified
-	StatusNotFound
+	StatusNotInManifest
+	StatusNotInFilesystem
+	StatusRemoved
+	StatusRestored
 )
 
-// OpAction represents any action that has been performed on a file system
-// object.
-type OpAction int
-
-const (
-	NoAction OpAction = iota
-	Uploaded
-	Failed
-)
+func EntryStatusName(status EntryStatus) string {
+	statusToName := map[EntryStatus]string{
+		StatusOk:              "StatusOk",
+		StatusError:           "StatusError",
+		StatusNew:             "StatusNew",
+		StatusModified:        "StatusModified",
+		StatusNotInManifest:   "StatusNotInManifest",
+		StatusNotInFilesystem: "StatusNotInFilesystem",
+		StatusRemoved:         "StatusRemoved",
+		StatusRestored:        "StatusRestored",
+	}
+	return statusToName[status]
+}
 
 // ItemInfo represents the meta-data associate with a file system object
 // as well as the application required state and status flags. This
 // structure is passed between operators to help them determine if their
 // specific operation needs to be performed or can be skipped.
 type EntryInfo struct {
-	Status        EntryStatus
-	RelPath       string
-	Hash          string
-	RawSize       int64
-	UploadedSize  int64
-	ModTime       int64
-	Mode          os.FileMode
-	Action        OpAction
-	ActionMessage string
+	Status  EntryStatus
+	Path    string
+	Hash    string
+	Size    int64
+	ModTime int64
+	Mode    os.FileMode
+	Error   error
 }

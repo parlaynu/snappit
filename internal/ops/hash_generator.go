@@ -1,87 +1,65 @@
 package ops
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 )
 
-// This operator will generate the content hash for the file and insert it into the
-// ItemInfo object.
-func NewHashGenerator(ctx context.Context, in <-chan *EntryInfo, root string) <-chan *EntryInfo {
-	out := make(chan *EntryInfo, 10)
-	hg := hashGenerator{
-		ctx:  ctx,
-		in:   in,
-		out:  out,
-		root: root,
+func NewHashGenerator(in <-chan *EntryInfo) (<-chan *EntryInfo, error) {
+	out := make(chan *EntryInfo, 2)
+	hg := hash_generator{
+		in:  in,
+		out: out,
 	}
 	go hg.run()
 
-	return out
+	return out, nil
 }
 
-type hashGenerator struct {
-	ctx  context.Context
-	in   <-chan *EntryInfo
-	out  chan<- *EntryInfo
-	root string
+type hash_generator struct {
+	in  <-chan *EntryInfo
+	out chan<- *EntryInfo
 }
 
-func (hg *hashGenerator) run() {
+func (hg *hash_generator) run() {
 	defer close(hg.out)
 
-	for {
-		// check the channels
-		select {
-		case <-hg.ctx.Done():
-			return
-		case info, ok := <-hg.in:
-			if !ok {
-				return
+	for info := range hg.in {
+		if info.Status != StatusError {
+			info, err := hg.process(info)
+			if err != nil {
+				info.Status = StatusError
+				info.Error = err
 			}
-			hg.process(info)
 		}
+		hg.out <- info
 	}
 }
 
-func (hg *hashGenerator) process(info *EntryInfo) {
-	// check the status first
-	if info.Action == Failed {
-		hg.out <- info
-		return
-	}
+func (hg *hash_generator) process(info *EntryInfo) (*EntryInfo, error) {
 
 	// only re-generate the hash if we need to
-	if info.Status == StatusNew || info.Status == StatusModified || len(info.Hash) == 0 {
-		// full path to the file
-		fpath := filepath.Join(hg.root, info.RelPath)
-
-		// open for reading
-		in, err := os.Open(fpath)
-		if err != nil {
-			info.Action = Failed
-			info.ActionMessage = fmt.Sprintf("failed to open %s", fpath)
-			hg.out <- info
-			return
-		}
-		defer in.Close()
-
-		// generate the hash
-		h := sha256.New()
-		_, err = io.Copy(h, in)
-		if err != nil {
-			info.Action = Failed
-			info.ActionMessage = fmt.Sprintf("failed to generate hash for %s", fpath)
-		} else {
-			info.Hash = hex.EncodeToString(h.Sum(nil))
-		}
+	if len(info.Hash) != 0 {
+		return info, nil
 	}
 
-	// pass it on
-	hg.out <- info
+	// open for reading
+	in, err := os.Open(info.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer in.Close()
+
+	// generate the hash
+	h := sha256.New()
+	_, err = io.Copy(h, in)
+	if err != nil {
+		return nil, err
+	} else {
+		info.Hash = hex.EncodeToString(h.Sum(nil))
+	}
+
+	return info, nil
 }

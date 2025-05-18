@@ -1,0 +1,12 @@
+---
+# the directorires to snapshot
+archives:
+- label: dir1
+  source: /home/me/dir1
+- label: dir2
+  source: /home/me/dir2
+
+
+# the snapshot arena - manifests and data
+arena: /home/me/snapshots
+

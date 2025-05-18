@@ -1,80 +1,80 @@
 package ops
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
-func NewManifestWriter(ctx context.Context, in <-chan *EntryInfo, mwriter io.Writer) <-chan *EntryInfo {
+func NewManifestWriter(in <-chan *EntryInfo, manifest, prefix string) (<-chan *EntryInfo, error) {
 
-	out := make(chan *EntryInfo, 10)
-	mw := manifestWriter{
-		ctx:    ctx,
+	if prefix[len(prefix)-1] != filepath.Separator {
+		prefix += string(filepath.Separator)
+	}
+	prefix = filepath.ToSlash(prefix)
+
+	writer, err := os.Create(manifest)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make(chan *EntryInfo, 2)
+	mw := manifest_writer{
 		in:     in,
 		out:    out,
-		writer: mwriter,
+		writer: writer,
+		prefix: prefix,
 	}
 	go mw.run()
 
-	return out
+	return out, nil
 }
 
-// Writes ItemInfo objects to the manifest.
-type manifestWriter struct {
-	ctx    context.Context
+type manifest_writer struct {
 	in     <-chan *EntryInfo
 	out    chan<- *EntryInfo
-	writer io.Writer
+	writer io.WriteCloser
+	prefix string
 }
 
-func (mw *manifestWriter) run() {
+func (mw *manifest_writer) run() {
 	defer close(mw.out)
+	defer mw.writer.Close()
 
-	for {
-		// check the channels
-		select {
-		case <-mw.ctx.Done():
-			return
-		case info, ok := <-mw.in:
-			if !ok {
-				return
+	for info := range mw.in {
+		if info.Status != StatusError {
+			line, err := mw.process(info)
+			if err == nil && len(line) > 0 {
+				_, err = io.WriteString(mw.writer, line)
 			}
-			mw.process(info)
+			if err != nil {
+				info.Status = StatusError
+				info.Error = err
+			}
 		}
+		mw.out <- info
 	}
 }
 
-func (mw *manifestWriter) process(info *EntryInfo) {
-	// don't write missing items to the manifest
-	if info.Status == StatusNotFound {
-		mw.out <- info
-		return
+func (mw *manifest_writer) process(info *EntryInfo) (string, error) {
+	if info.Status == StatusError {
+		return "", nil
 	}
 
-	// if something has gone wrong write a zero modtime to
-	//   force retrying an upload next time around
-	mtime := info.ModTime
-	if info.Action == Failed {
-		mtime = 0
-	}
-
-	// encode the path
-	path := url.PathEscape(info.RelPath)
+	// trim the prefix and encode
+	path := filepath.ToSlash(info.Path)
+	path = url.PathEscape(strings.TrimPrefix(path, mw.prefix))
 
 	line := fmt.Sprintf("%d,%d,0%o,%s,%s\n",
-		info.RawSize,
-		mtime,
+		info.Size,
+		info.ModTime,
 		info.Mode&0777,
 		info.Hash,
 		path,
 	)
-	_, err := mw.writer.Write([]byte(line))
-	if err != nil {
-		info.Action = Failed
-		info.ActionMessage = "failed writing entry to manifest"
-	}
 
-	mw.out <- info
+	return line, nil
 }
