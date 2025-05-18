@@ -18,16 +18,16 @@ type snapshot struct {
 
 func (s *snapshot) CreateArchive(label string) (Archive, error) {
 
-	// the baseline manifest file
+	// the baseline snapshot file
 	bfile := ""
 	if len(s.baseline) > 0 {
 		bfile = filepath.Join(s.baseline, label) + ".csv"
 	}
 
-	// the manifest file
+	// the snapshot file
 	mfile := filepath.Join(s.manifests, label) + ".csv"
 
-	// it's an error if the manifest already exists
+	// it's an error if the snapshot already exists
 	_, err := os.Stat(mfile)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
@@ -46,10 +46,10 @@ func (s *snapshot) CreateArchive(label string) (Archive, error) {
 
 func (s *snapshot) LoadArchive(label string) (Archive, error) {
 
-	// the manifest file
+	// the snapshot file
 	mfile := filepath.Join(s.manifests, label) + ".csv"
 
-	// it's an error if the manifest doesn't exist
+	// it's an error if the snapshot doesn't exist
 	_, err := os.Stat(mfile)
 	if err != nil {
 		return nil, err

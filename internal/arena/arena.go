@@ -21,14 +21,14 @@ type Arena interface {
 
 type arena struct {
 	root      string
-	manifests string
+	snapshots string
 	data      string
 }
 
 func New(root string) (Arena, error) {
 	a := arena{
 		root:      root,
-		manifests: filepath.Join(root, "manifests"),
+		snapshots: filepath.Join(root, "snapshots"),
 		data:      filepath.Join(root, "data"),
 	}
 	return &a, nil
@@ -48,7 +48,7 @@ func (a *arena) Exists() bool {
 
 func (a *arena) Create() error {
 
-	err := os.MkdirAll(a.manifests, 0770)
+	err := os.MkdirAll(a.snapshots, 0770)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (a *arena) Create() error {
 func (a *arena) Snapshots() ([]string, error) {
 	var snaps []string
 
-	entries, err := os.ReadDir(a.manifests)
+	entries, err := os.ReadDir(a.snapshots)
 	if err != nil {
 		return nil, err
 	}
@@ -85,15 +85,15 @@ func (a *arena) Snapshots() ([]string, error) {
 func (a *arena) CreateSnapshot(name, baseline string) (Snapshot, error) {
 	// the baseline is the reference snapshot - make sure it exists
 	if len(baseline) > 0 {
-		baseline = filepath.Join(a.manifests, baseline)
+		baseline = filepath.Join(a.snapshots, baseline)
 		_, err := os.Stat(baseline)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// this is where this snapshot will write manifests
-	snapdir := filepath.Join(a.manifests, name)
+	// this is where this snapshot will write snapshots
+	snapdir := filepath.Join(a.snapshots, name)
 	err := os.MkdirAll(snapdir, 0770)
 	if err != nil {
 		return nil, err
@@ -109,8 +109,8 @@ func (a *arena) CreateSnapshot(name, baseline string) (Snapshot, error) {
 
 func (a *arena) LoadSnapshot(name string) (Snapshot, error) {
 
-	// this is where this snapshot will write manifests
-	snapdir := filepath.Join(a.manifests, name)
+	// this is where this snapshot will write snapshots
+	snapdir := filepath.Join(a.snapshots, name)
 	_, err := os.Stat(snapdir)
 	if err != nil {
 		return nil, err
