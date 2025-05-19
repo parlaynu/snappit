@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -69,6 +70,17 @@ func (fs *fs_reconciler) restore_file(info *EntryInfo) error {
 		}
 	}
 
+	// create the new destination file
+	dst, err := os.Create(info.Path)
+	if err != nil {
+		os.MkdirAll(filepath.Dir(info.Path), 0770)
+		dst, err = os.Create(info.Path)
+	}
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
 	// open the source
 	dpath := fmt.Sprintf("%s/%s/%s", fs.data_root, info.Hash[:4], info.Hash)
 	src, err := os.Open(dpath)
@@ -76,13 +88,6 @@ func (fs *fs_reconciler) restore_file(info *EntryInfo) error {
 		return err
 	}
 	defer src.Close()
-
-	// create the new destination file
-	dst, err := os.Create(info.Path)
-	if err != nil {
-		return err
-	}
-	defer dst.Close()
 
 	// and copy
 	_, err = io.Copy(dst, src)
