@@ -85,6 +85,9 @@ func reset_archive(snapshot arena.Snapshot, label, source string, verbose bool) 
 		if info.Status != ops.StatusOk {
 			fmt.Printf("%s: %s\n", ops.EntryStatusName(info.Status), info.Path)
 		}
+		if info.Status == ops.StatusError {
+			fmt.Printf("  %v\n", info.Error)
+		}
 	}
 	fmt.Printf("checked %d files\n", count)
 
