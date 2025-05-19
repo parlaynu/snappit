@@ -1,9 +1,9 @@
-# Manual Snapshotting
+# Snapshotting
 
-This project creates tools to create and reset manual snapshots.
+This project creates tools to create and reset user-space snapshots.
 
 It is derived from the project [s3backup](https://github.com/parlaynu/s3backup), taking the core operators
-and algorithm to manage manual snapshots.
+and algorithm to manage user-space snapshots.
 
 The snapshot is controlled through a configuration file, with an example shown [here](config/config.yaml).
 The default location for the configuration file is `~/.config/snappit/config.yaml`; this can be overridden
