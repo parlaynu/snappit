@@ -19,7 +19,7 @@ func main() {
 	}
 
 	verbose := flag.Bool("t", false, "run in test only mode")
-	config_file := flag.String("c", "~/.config/snappit/config.yml", "override the default config file")
+	config_file := flag.String("c", "~/.config/snappit/config.yaml", "override the default config file")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
