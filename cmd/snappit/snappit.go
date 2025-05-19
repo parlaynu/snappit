@@ -11,14 +11,14 @@ import (
 func main() {
 	// process the command line
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s [--config <config_file>] create <name> [<baseline>]\n", filepath.Base(os.Args[0]))
-		fmt.Fprintf(os.Stderr, "Usage: %s [--config <config_file>] [--prune] reset <name>\n", filepath.Base(os.Args[0]))
-		fmt.Fprintf(os.Stderr, "Usage: %s [--config <config_file>] list\n", filepath.Base(os.Args[0]))
+		fmt.Fprintf(os.Stderr, "Usage: %s [options] create <name> [<baseline>]\n", filepath.Base(os.Args[0]))
+		fmt.Fprintf(os.Stderr, "Usage: %s [options] reset <name>\n", filepath.Base(os.Args[0]))
+		fmt.Fprintf(os.Stderr, "Usage: %s [options] list\n", filepath.Base(os.Args[0]))
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
-	prune := flag.Bool("prune", false, "skip the prune step")
+	prune := flag.Bool("prune", false, "prune empty directories on reset")
 	config_file := flag.String("config", "~/.config/snappit/config.yaml", "override the default config file")
 	flag.Parse()
 
