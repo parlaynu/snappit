@@ -6,17 +6,24 @@ import (
 	"strings"
 )
 
-func NewFsScanner(start <-chan bool, source string) (<-chan *EntryInfo, error) {
+func NewFsScanner(start <-chan bool, source string, skipdirs []string) (<-chan *EntryInfo, error) {
 
 	// make sure we have a trailing slash... assumed in the main loop
 	if !strings.HasSuffix(source, "/") {
 		source += "/"
 	}
 
+	// create the skipdirs map
+	skipdirz := make(map[string]bool)
+	for _, dir := range skipdirs {
+		skipdirz[dir] = true
+	}
+
 	out := make(chan *EntryInfo, 2)
 	fs := fs_scanner{
-		out:    out,
-		source: source,
+		out:      out,
+		source:   source,
+		skipdirs: skipdirz,
 	}
 	go func() {
 		defer close(fs.out)
@@ -30,8 +37,9 @@ func NewFsScanner(start <-chan bool, source string) (<-chan *EntryInfo, error) {
 }
 
 type fs_scanner struct {
-	out    chan<- *EntryInfo
-	source string
+	out      chan<- *EntryInfo
+	source   string
+	skipdirs map[string]bool
 }
 
 func (fs *fs_scanner) run(dir string) {
@@ -62,9 +70,10 @@ func (fs *fs_scanner) run(dir string) {
 			}
 
 		} else if entry.Type().IsDir() {
-			fpath := filepath.Join(dir, entry.Name())
-			fs.run(fpath)
-
+			if !fs.skipdirs[entry.Name()] {
+				fpath := filepath.Join(dir, entry.Name())
+				fs.run(fpath)
+			}
 		}
 	}
 }

@@ -28,7 +28,7 @@ func ResetSnapshot(config *Config, name string, verbose bool) error {
 	}
 
 	for _, archive := range config.Archives {
-		err = reset_archive(snapshot, archive.Label, archive.Source, verbose)
+		err = reset_archive(snapshot, archive.Label, archive.Source, config.SkipDirs, verbose)
 		if err != nil {
 			return err
 		}
@@ -37,7 +37,7 @@ func ResetSnapshot(config *Config, name string, verbose bool) error {
 	return nil
 }
 
-func reset_archive(snapshot arena.Snapshot, label, source string, verbose bool) error {
+func reset_archive(snapshot arena.Snapshot, label, source string, skipdirs []string, verbose bool) error {
 	fmt.Printf("Resetting %s:%s\n", label, source)
 
 	archive, err := snapshot.LoadArchive(label)
@@ -51,7 +51,7 @@ func reset_archive(snapshot arena.Snapshot, label, source string, verbose bool) 
 	defer close(start)
 
 	// build the pipeline of operators
-	ch1, err := ops.NewFsScanner(start, source)
+	ch1, err := ops.NewFsScanner(start, source, skipdirs)
 	if err != nil {
 		return err
 	}

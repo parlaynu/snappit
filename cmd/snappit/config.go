@@ -18,6 +18,8 @@ type Config struct {
 	}
 
 	Arena string
+
+	SkipDirs []string `yaml:"skip_dirs"`
 }
 
 func LoadConfig(path string) (*Config, error) {

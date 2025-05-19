@@ -24,7 +24,7 @@ func CreateSnapshot(config *Config, name, baseline string, verbose bool) error {
 	}
 
 	for _, archive := range config.Archives {
-		err = create_archive(snapshot, archive.Label, archive.Source, verbose)
+		err = create_archive(snapshot, archive.Label, archive.Source, config.SkipDirs, verbose)
 		if err != nil {
 			return err
 		}
@@ -33,7 +33,7 @@ func CreateSnapshot(config *Config, name, baseline string, verbose bool) error {
 	return nil
 }
 
-func create_archive(snapshot arena.Snapshot, label, source string, verbose bool) error {
+func create_archive(snapshot arena.Snapshot, label, source string, skipdirs []string, verbose bool) error {
 	fmt.Printf("Archiving %s:%s\n", label, source)
 
 	archive, err := snapshot.CreateArchive(label)
@@ -47,7 +47,7 @@ func create_archive(snapshot arena.Snapshot, label, source string, verbose bool)
 	defer close(start)
 
 	// build the pipeline of operators
-	ch, err := ops.NewFsScanner(start, source)
+	ch, err := ops.NewFsScanner(start, source, skipdirs)
 	if err != nil {
 		return err
 	}

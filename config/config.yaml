@@ -10,3 +10,6 @@ archives:
 # the snapshot arena - manifests and data
 arena: /home/me/snaparena
 
+# skip directories
+skip_dirs:
+  - .git
