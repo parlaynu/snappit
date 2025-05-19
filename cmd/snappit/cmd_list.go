@@ -7,7 +7,7 @@ import (
 	"github.com/parlaynu/snappit/internal/arena"
 )
 
-func ListSnapshots(config *Config, verbose bool) error {
+func ListSnapshots(config *Config) error {
 
 	arena, err := arena.New(config.Arena)
 	if err != nil {

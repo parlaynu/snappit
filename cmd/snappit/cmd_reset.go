@@ -8,7 +8,7 @@ import (
 	"github.com/parlaynu/snappit/internal/ops"
 )
 
-func ResetSnapshot(config *Config, name string, verbose bool) error {
+func ResetSnapshot(config *Config, name string) error {
 
 	arena, err := arena.New(config.Arena)
 	if err != nil {
@@ -28,16 +28,22 @@ func ResetSnapshot(config *Config, name string, verbose bool) error {
 	}
 
 	for _, archive := range config.Archives {
-		err = reset_archive(snapshot, archive.Label, archive.Source, config.SkipDirs, verbose)
+		err = reset_archive(snapshot, archive.Label, archive.Source, config.SkipDirs)
 		if err != nil {
 			return err
+		}
+		if config.Prune {
+			err = prune_source(archive.Source, config.SkipDirs)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func reset_archive(snapshot arena.Snapshot, label, source string, skipdirs []string, verbose bool) error {
+func reset_archive(snapshot arena.Snapshot, label, source string, skipdirs []string,) error {
 	fmt.Printf("Resetting %s:%s\n", label, source)
 
 	archive, err := snapshot.LoadArchive(label)
@@ -90,6 +96,29 @@ func reset_archive(snapshot arena.Snapshot, label, source string, skipdirs []str
 		}
 	}
 	fmt.Printf("checked %d files\n", count)
+
+	return nil
+}
+
+func prune_source(source string, skipdirs []string) error {
+	fmt.Printf("Pruning %s\n", source)
+
+	// create the start channel - an early return will
+	//  close the channel and shut everything down
+	start := make(chan bool, 2)
+	defer close(start)
+
+	ch, err := ops.NewFsPruner(start, source, skipdirs)
+	if err != nil {
+		return err
+	}
+	start <- true
+
+	for info := range ch {
+		if info.Pruned {
+			fmt.Printf("pruned %s\n", info.Directory)
+		}
+	}
 
 	return nil
 }

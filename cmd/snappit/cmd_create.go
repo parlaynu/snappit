@@ -7,7 +7,7 @@ import (
 	"github.com/parlaynu/snappit/internal/ops"
 )
 
-func CreateSnapshot(config *Config, name, baseline string, verbose bool) error {
+func CreateSnapshot(config *Config, name, baseline string) error {
 
 	arena, err := arena.New(config.Arena)
 	if err != nil {
@@ -24,7 +24,7 @@ func CreateSnapshot(config *Config, name, baseline string, verbose bool) error {
 	}
 
 	for _, archive := range config.Archives {
-		err = create_archive(snapshot, archive.Label, archive.Source, config.SkipDirs, verbose)
+		err = create_archive(snapshot, archive.Label, archive.Source, config.SkipDirs)
 		if err != nil {
 			return err
 		}
@@ -33,7 +33,7 @@ func CreateSnapshot(config *Config, name, baseline string, verbose bool) error {
 	return nil
 }
 
-func create_archive(snapshot arena.Snapshot, label, source string, skipdirs []string, verbose bool) error {
+func create_archive(snapshot arena.Snapshot, label, source string, skipdirs []string) error {
 	fmt.Printf("Archiving %s:%s\n", label, source)
 
 	archive, err := snapshot.CreateArchive(label)

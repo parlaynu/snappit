@@ -11,15 +11,15 @@ import (
 func main() {
 	// process the command line
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s [-c config.yml] [-t] create <name> [<baseline>]\n", filepath.Base(os.Args[0]))
-		fmt.Fprintf(os.Stderr, "Usage: %s [-c config,yml] [-t] reset <name>\n", filepath.Base(os.Args[0]))
-		fmt.Fprintf(os.Stderr, "Usage: %s [-c config.yml] list\n", filepath.Base(os.Args[0]))
+		fmt.Fprintf(os.Stderr, "Usage: %s [--config <config_file>] create <name> [<baseline>]\n", filepath.Base(os.Args[0]))
+		fmt.Fprintf(os.Stderr, "Usage: %s [--config <config_file>] [--prune] reset <name>\n", filepath.Base(os.Args[0]))
+		fmt.Fprintf(os.Stderr, "Usage: %s [--config <config_file>] list\n", filepath.Base(os.Args[0]))
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
-	verbose := flag.Bool("t", false, "run in test only mode")
-	config_file := flag.String("c", "~/.config/snappit/config.yaml", "override the default config file")
+	prune := flag.Bool("prune", false, "skip the prune step")
+	config_file := flag.String("config", "~/.config/snappit/config.yaml", "override the default config file")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
@@ -35,6 +35,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: failed to %v\n", err)
 		os.Exit(1)
 	}
+	config.Prune = *prune
 
 	// and... run the command
 	if command == "create" {
@@ -47,7 +48,7 @@ func main() {
 		if flag.NArg() == 3 {
 			baseline = flag.Arg(2)
 		}
-		err = CreateSnapshot(config, name, baseline, *verbose)
+		err = CreateSnapshot(config, name, baseline)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: failed to create snapshot: %v\n", err)
 			os.Exit(1)
@@ -58,7 +59,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error: must specify a snapshot name\n")
 			flag.Usage()
 		}
-		err = ResetSnapshot(config, flag.Arg(1), *verbose)
+		err = ResetSnapshot(config, flag.Arg(1))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: failed to reset snapshot: %v\n", err)
 			os.Exit(1)
@@ -69,7 +70,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error: too many arguments for list\n")
 			flag.Usage()
 		}
-		err = ListSnapshots(config, *verbose)
+		err = ListSnapshots(config)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: failed to list snapshots: %v\n", err)
 			os.Exit(1)

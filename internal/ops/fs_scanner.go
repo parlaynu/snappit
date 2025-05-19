@@ -3,15 +3,9 @@ package ops
 import (
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 func NewFsScanner(start <-chan bool, source string, skipdirs []string) (<-chan *EntryInfo, error) {
-
-	// make sure we have a trailing slash... assumed in the main loop
-	if !strings.HasSuffix(source, "/") {
-		source += "/"
-	}
 
 	// create the skipdirs map
 	skipdirz := make(map[string]bool)
