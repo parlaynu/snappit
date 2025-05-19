@@ -46,29 +46,28 @@ func (fa *file_archiver) process(info *EntryInfo) (*EntryInfo, error) {
 	dpath := fmt.Sprintf("%s/%s/%s", fa.root, info.Hash[:4], info.Hash)
 
 	// if it already exists, we can finish
-	_, err := os.Stat(dpath)
+	fi, err := os.Stat(dpath)
 	if err != nil && !os.IsNotExist(err) {
 		return info, err
 	}
-	if err == nil {
+	if err == nil && fi.Size() == info.Size {
 		info.Status = StatusOk
 		return info, nil
 	}
 
-	// open source and destination
+	// open source
 	src, err := os.Open(info.Path)
 	if err != nil {
 		return info, err
 	}
 	defer src.Close()
 
-	ddir := filepath.Dir(dpath)
-	err = os.MkdirAll(ddir, 0750)
-	if err != nil {
-		return info, err
-	}
-
+	// create the destination
 	dst, err := os.Create(dpath)
+	if err != nil {
+		os.MkdirAll(filepath.Dir(dpath), 0750)
+		dst, err = os.Create(dpath)
+	}
 	if err != nil {
 		return info, err
 	}
