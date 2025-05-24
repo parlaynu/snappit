@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/parlaynu/snappit/internal/arena"
 	"github.com/parlaynu/snappit/internal/ops"
 )
 
-func ResetSnapshot(config *Config, name string) error {
+func RestoreSnapshot(config *Config, name string) error {
 
 	arena, err := arena.New(config.Arena)
 	if err != nil {
@@ -24,7 +25,7 @@ func ResetSnapshot(config *Config, name string) error {
 	}
 
 	for _, archive := range config.Archives {
-		fcount, err := reset_archive(snapshot, archive.Label, archive.Source, config.SkipDirs)
+		fcount, err := restore_archive(snapshot, archive.Label, archive.Source, config.SkipDirs)
 		if err != nil {
 			return err
 		}
@@ -44,8 +45,8 @@ func ResetSnapshot(config *Config, name string) error {
 	return nil
 }
 
-func reset_archive(snapshot arena.Snapshot, label, source string, skipdirs []string,) (int, error) {
-	fmt.Printf("Resetting %s:%s\n", label, source)
+func restore_archive(snapshot arena.Snapshot, label, source string, skipdirs []string,) (int, error) {
+	fmt.Printf("Restoring %s:%s\n", label, source)
 
 	archive, err := snapshot.LoadArchive(label)
 	if err != nil {
@@ -90,7 +91,7 @@ func reset_archive(snapshot arena.Snapshot, label, source string, skipdirs []str
 	for info := range ch {
 		count++
 		if info.Status != ops.StatusOk {
-			fmt.Printf("%s: %s\n", ops.EntryStatusName(info.Status), info.Path)
+			fmt.Printf("- %s: %s\n", strings.ToLower(ops.EntryStatusName(info.Status)), info.Path)
 		}
 		if info.Status == ops.StatusError {
 			fmt.Printf("  %v\n", info.Error)
@@ -117,7 +118,7 @@ func prune_source(source string, skipdirs []string) (int, error) {
 	for info := range ch {
 		if info.Pruned {
 			count++
-			fmt.Printf("pruned %s\n", info.Directory)
+			fmt.Printf("- pruned: %s\n", info.Directory)
 		}
 	}
 

@@ -42,30 +42,27 @@ type fs_pruner struct {
 }
 
 func (fs *fs_pruner) run(dir string) int {
-	// read the directory contents
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return -1
 	}
 
-	// loop over the source files
 	npruned := 0
 	for _, entry := range entries {
-		if entry.Type().IsDir() {
-			if fs.skipdirs[entry.Name()] {
-				continue
-			}
-			fpath := filepath.Join(dir, entry.Name())
+		if !entry.Type().IsDir() || fs.skipdirs[entry.Name()] {
+			continue
+		}
 
-			// traverse into the subdirectory
-			prune := fs.run(fpath) == 0
-			if prune && os.Remove(fpath) == nil {
-				npruned++
-			}
-			fs.out <- &PruneInfo{
-				Directory: fpath,
-				Pruned:    prune,
-			}
+		fpath := filepath.Join(dir, entry.Name())
+
+		pruned := false
+		if fs.run(fpath) == 0 && os.Remove(fpath) == nil {
+			pruned = true
+			npruned++
+		}
+		fs.out <- &PruneInfo{
+			Directory: fpath,
+			Pruned:    pruned,
 		}
 	}
 

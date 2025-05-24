@@ -21,14 +21,14 @@ const (
 
 func EntryStatusName(status EntryStatus) string {
 	statusToName := map[EntryStatus]string{
-		StatusOk:              "StatusOk",
-		StatusError:           "StatusError",
-		StatusNew:             "StatusNew",
-		StatusModified:        "StatusModified",
-		StatusNotInManifest:   "StatusNotInManifest",
-		StatusNotInFilesystem: "StatusNotInFilesystem",
-		StatusRemoved:         "StatusRemoved",
-		StatusRestored:        "StatusRestored",
+		StatusOk:              "Ok",
+		StatusError:           "Error",
+		StatusNew:             "New",
+		StatusModified:        "Modified",
+		StatusNotInManifest:   "NotInManifest",
+		StatusNotInFilesystem: "NotInFilesystem",
+		StatusRemoved:         "Removed",
+		StatusRestored:        "Restored",
 	}
 	return statusToName[status]
 }

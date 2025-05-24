@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/parlaynu/snappit/internal/arena"
 	"github.com/parlaynu/snappit/internal/ops"
@@ -84,10 +85,10 @@ func create_archive(snapshot arena.Snapshot, label, source string, skipdirs []st
 	}
 
 	count := 0
-	for v := range ch {
+	for info := range ch {
 		count++
-		if v.Status != ops.StatusOk {
-			fmt.Printf("found %s: %s\n", v.Hash, v.Path)
+		if info.Status != ops.StatusOk {
+			fmt.Printf("- %s: %s\n", strings.ToLower(ops.EntryStatusName(info.Status)), info.Path)
 		}
 	}
 	fmt.Printf("checked %d files\n", count)

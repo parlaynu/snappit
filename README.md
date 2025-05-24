@@ -1,6 +1,6 @@
 # Snapshotting
 
-This project creates tools to create and reset user-space snapshots.
+This project contains a tool to create and restore user-space snapshots.
 
 It is derived from the project [s3backup](https://github.com/parlaynu/s3backup), taking the core operators
 and algorithm to manage user-space snapshots.
@@ -42,10 +42,10 @@ To list the snapshots available, run the list command:
 
     $ snappit list
 
-To reset to the baseline snapshot:
+To restore to the baseline snapshot:
 
-    $ snappit reset baseline
+    $ snappit restore baseline
 
-This last command will reset the source directories to how they were when the baseline
+This last command will restore the source directories to how they were when the baseline
 snapshot was created.
-
+sss

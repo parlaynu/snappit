@@ -12,13 +12,13 @@ func main() {
 	// process the command line
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] create <name> [<baseline>]\n", filepath.Base(os.Args[0]))
-		fmt.Fprintf(os.Stderr, "Usage: %s [options] reset <name>\n", filepath.Base(os.Args[0]))
+		fmt.Fprintf(os.Stderr, "Usage: %s [options] restore <name>\n", filepath.Base(os.Args[0]))
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] list\n", filepath.Base(os.Args[0]))
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
-	prune := flag.Bool("prune", false, "prune empty directories on reset")
+	prune := flag.Bool("prune", false, "prune empty directories on restore")
 	config_file := flag.String("config", "~/.config/snappit/config.yaml", "override the default config file")
 	flag.Parse()
 
@@ -54,14 +54,14 @@ func main() {
 			os.Exit(1)
 		}
 
-	} else if command == "reset" {
+	} else if command == "restore" {
 		if flag.NArg() != 2 {
 			fmt.Fprintf(os.Stderr, "Error: must specify a snapshot name\n")
 			flag.Usage()
 		}
-		err = ResetSnapshot(config, flag.Arg(1))
+		err = RestoreSnapshot(config, flag.Arg(1))
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: failed to reset snapshot: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Error: failed to restore snapshot: %v\n", err)
 			os.Exit(1)
 		}
 
