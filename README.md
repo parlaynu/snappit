@@ -2,8 +2,8 @@
 
 This project contains a tool to create and restore user-space snapshots.
 
-It is derived from the project [s3backup](https://github.com/parlaynu/s3backup), taking the core operators
-and algorithm to manage user-space snapshots.
+It is derived from the project [s3backup](https://github.com/parlaynu/s3backup), rearranging the core operators
+and algorithm to work for user-space snapshots instead of backups.
 
 The snapshot is controlled through a configuration file, with an example shown [here](config/config.yaml).
 The default location for the configuration file is `~/.config/snappit/config.yaml`; this can be overridden
@@ -48,4 +48,4 @@ To restore to the baseline snapshot:
 
 This last command will restore the source directories to how they were when the baseline
 snapshot was created.
-sss
+
