@@ -14,10 +14,6 @@ func ResetSnapshot(config *Config, name string) error {
 	if err != nil {
 		return err
 	}
-	err = arena.Create()
-	if err != nil {
-		return err
-	}
 	if !arena.Exists() {
 		return os.ErrNotExist
 	}
