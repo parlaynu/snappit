@@ -1,11 +1,11 @@
-# Snapshotting
+# Directory Snapshots
 
-This project contains a tool to create and restore user-space snapshots.
+This project contains a tool to create and restore user-managed snapshots of filesystem directories.
 
 It is derived from the project [s3backup](https://github.com/parlaynu/s3backup), rearranging the core operators
 and algorithm to work for user-space snapshots instead of backups.
 
-The snapshot is controlled through a configuration file, with an example shown [here](config/config.yaml).
+The snapshot is configured through a yaml configuration file, with an example shown [here](config/config.yaml).
 The default location for the configuration file is `~/.config/snappit/config.yaml`; this can be overridden
 on the command line.
 
