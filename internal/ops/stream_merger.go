@@ -79,13 +79,20 @@ func (sm *stream_merger) run() {
 
 		// if the paths are the same, check the attributes
 		if fsysInfo.Path == maniInfo.Path {
-			// initialise the status and hash
 			maniInfo.Status = StatusOk
-			maniInfo.Hash = maniInfo.Hash
 
 			// if size or modtime are different, flag as changed (or potentially changed)
 			if fsysInfo.Size != maniInfo.Size || fsysInfo.ModTime != maniInfo.ModTime {
 				maniInfo.Status = StatusModified
+			}
+
+			// if we have a filesystem hash, compare it to the manifest hash, potentially
+			//   overriding the previous check's decision
+			if len(fsysInfo.Hash) > 0 {
+				maniInfo.Status = StatusOk
+				if fsysInfo.Hash != maniInfo.Hash {
+					maniInfo.Status = StatusModified
+				}
 			}
 			sm.out <- maniInfo
 			fsysInfo = nil

@@ -18,7 +18,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	prune := flag.Bool("prune", false, "prune empty directories on restore")
+	deep := flag.Bool("deep", false, "restore - perform a deep scan to check for changes")
+	prune := flag.Bool("prune", false, "restore - prune empty directories")
 	config_file := flag.String("config", "~/.config/snappit/config.yaml", "override the default config file")
 	flag.Parse()
 
@@ -35,6 +36,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: failed to %v\n", err)
 		os.Exit(1)
 	}
+	config.DeepScan = *deep
 	config.Prune = *prune
 
 	// and... run the command

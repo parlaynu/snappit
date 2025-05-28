@@ -21,6 +21,7 @@ type Config struct {
 
 	SkipDirs []string `yaml:"skip_dirs"`
 
+	DeepScan bool
 	Prune bool
 }
 

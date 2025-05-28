@@ -25,7 +25,7 @@ func RestoreSnapshot(config *Config, name string) error {
 	}
 
 	for _, archive := range config.Archives {
-		fcount, err := restore_archive(snapshot, archive.Label, archive.Source, config.SkipDirs)
+		fcount, err := restore_archive(snapshot, archive.Label, archive.Source, config.DeepScan, config.SkipDirs)
 		if err != nil {
 			return err
 		}
@@ -45,7 +45,7 @@ func RestoreSnapshot(config *Config, name string) error {
 	return nil
 }
 
-func restore_archive(snapshot arena.Snapshot, label, source string, skipdirs []string,) (int, error) {
+func restore_archive(snapshot arena.Snapshot, label, source string, deep_check bool, skipdirs []string,) (int, error) {
 	fmt.Printf("Restoring %s:%s\n", label, source)
 
 	archive, err := snapshot.LoadArchive(label)
@@ -63,9 +63,12 @@ func restore_archive(snapshot arena.Snapshot, label, source string, skipdirs []s
 	if err != nil {
 		return 0, err
 	}
-	ch1, err = ops.NewHashGenerator(ch1)
-	if err != nil {
-		return 0, err
+
+	if deep_check {
+		ch1, err = ops.NewHashGenerator(ch1)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	manifest := archive.Manifest()
