@@ -57,9 +57,8 @@ func (hg *hash_generator) process(info *EntryInfo) (*EntryInfo, error) {
 	_, err = io.Copy(h, in)
 	if err != nil {
 		return info, err
-	} else {
-		info.Hash = hex.EncodeToString(h.Sum(nil))
 	}
+	info.Hash = hex.EncodeToString(h.Sum(nil))
 
 	return info, nil
 }
