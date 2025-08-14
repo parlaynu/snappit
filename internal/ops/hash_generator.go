@@ -48,7 +48,7 @@ func (hg *hash_generator) process(info *EntryInfo) (*EntryInfo, error) {
 	// open for reading
 	in, err := os.Open(info.Path)
 	if err != nil {
-		return nil, err
+		return info, err
 	}
 	defer in.Close()
 
@@ -56,7 +56,7 @@ func (hg *hash_generator) process(info *EntryInfo) (*EntryInfo, error) {
 	h := sha256.New()
 	_, err = io.Copy(h, in)
 	if err != nil {
-		return nil, err
+		return info, err
 	} else {
 		info.Hash = hex.EncodeToString(h.Sum(nil))
 	}
