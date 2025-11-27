@@ -1,5 +1,10 @@
 package ops
 
+import (
+	"os"
+	"strings"
+)
+
 func NewStreamMerger(inFsys <-chan *EntryInfo, inMani <-chan *EntryInfo) (<-chan *EntryInfo, error) {
 
 	out := make(chan *EntryInfo, 2)
@@ -17,6 +22,34 @@ type stream_merger struct {
 	inFsys <-chan *EntryInfo
 	inMani <-chan *EntryInfo
 	out    chan<- *EntryInfo
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func compare_paths(path1, path2 string) int {
+	path1s := strings.Split(path1, string(os.PathSeparator))
+	path2s := strings.Split(path2, string(os.PathSeparator))
+
+	len1 := len(path1s)
+	len2 := len(path2s)
+
+	minlen := min(len1, len2)
+
+	for i := 0; i < minlen; i++ {
+		if path1s[i] < path2s[i] {
+			return -1
+		}
+		if path1s[i] > path2s[i] {
+			return 1
+		}
+	}
+
+	return 0
 }
 
 func (sm *stream_merger) run() {
@@ -61,8 +94,12 @@ func (sm *stream_merger) run() {
 			continue
 		}
 
-		// if fsysInfo is behind maniInfo
-		if fsysInfo.Path < maniInfo.Path {
+		// compare the paths by path segment, not as strings
+		val := compare_paths(fsysInfo.Path, maniInfo.Path)
+
+		// if fsysInfo is behind maniInfo: a new item
+		// - fsysInfo.Path < maniInfo.Path
+		if val < 0 {
 			fsysInfo.Status = StatusNotInManifest
 			sm.out <- fsysInfo
 			fsysInfo = nil
@@ -70,7 +107,8 @@ func (sm *stream_merger) run() {
 		}
 
 		// if fsysInfo is ahead of maniInfo: a removed item
-		if fsysInfo.Path > maniInfo.Path {
+		// - fsysInfo.Path > maniInfo.Path
+		if val > 0 {
 			maniInfo.Status = StatusNotInFilesystem
 			sm.out <- maniInfo
 			maniInfo = nil
@@ -78,7 +116,8 @@ func (sm *stream_merger) run() {
 		}
 
 		// if the paths are the same, check the attributes
-		if fsysInfo.Path == maniInfo.Path {
+		// - fsysInfo.Path == maniInfo.Path
+		if val == 0 {
 			maniInfo.Status = StatusOk
 
 			// if size or modtime are different, flag as changed (or potentially changed)
